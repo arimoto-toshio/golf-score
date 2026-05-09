@@ -124,6 +124,16 @@
         <input type="number" class="score-input pm" id="arimoto-pm" oninput="recalc()" inputmode="numeric">
       </div>
     </div>
+    <div class="name-row" style="margin-bottom: 8px;">
+      <div class="handi-box">
+        <label>ハンデ</label>
+        <input type="number" class="handi-input" id="arimoto-handi-input" value="36" oninput="updateArimotoHandi(this.value)" inputmode="numeric">
+      </div>
+      <div class="handi-box">
+        <label>ハーフ</label>
+        <span class="val" id="arimoto-half" style="font-weight:700;font-size:16px;color:#8b6914;">18.0</span>
+      </div>
+    </div>
     <div class="result-row">
       <div class="result-cell"><div class="label">ハンデ</div><div class="val" id="arimoto-handi">—</div></div>
       <div class="result-cell"><div class="label">午前結果</div><div class="val" id="arimoto-am-res">—</div></div>
@@ -241,6 +251,8 @@ function render() {
   document.getElementById('arimoto-am').value = c.arimotoAm;
   document.getElementById('arimoto-pm').value = c.arimotoPm;
   document.getElementById('arimoto-handi').textContent = c.arimotoHandi;
+  document.getElementById('arimoto-handi-input').value = c.arimotoHandi;
+  document.getElementById('arimoto-half').textContent = ((+c.arimotoHandi || 0) / 2).toFixed(1);
 
   // メンバーカード
   const wrap = document.getElementById('memCards');
@@ -440,6 +452,14 @@ function updateScore(name, field, val) {
 
 function updateHandi(i, val) {
   app.members[i].handi = parseFloat(val) || 0;
+  save();
+  recalc();
+}
+
+function updateArimotoHandi(val) {
+  app.current.arimotoHandi = parseFloat(val) || 0;
+  document.getElementById('arimoto-handi').textContent = app.current.arimotoHandi;
+  document.getElementById('arimoto-half').textContent = (app.current.arimotoHandi / 2).toFixed(1);
   save();
   recalc();
 }
