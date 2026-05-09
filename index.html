@@ -135,9 +135,9 @@
       </div>
     </div>
     <div class="result-row">
-      <div class="result-cell"><div class="label">ハンデ</div><div class="val" id="arimoto-handi">—</div></div>
       <div class="result-cell"><div class="label">午前結果</div><div class="val" id="arimoto-am-res">—</div></div>
       <div class="result-cell"><div class="label">午後結果</div><div class="val" id="arimoto-pm-res">—</div></div>
+      <div class="result-cell"><div class="label">　</div><div class="val">　</div></div>
     </div>
   </div>
 
@@ -282,6 +282,7 @@ function render() {
           <div class="result-cell"><div class="label">午前結果</div><div class="val" id="r-am-${i}">—</div></div>
           <div class="result-cell"><div class="label">午後結果</div><div class="val" id="r-pm-${i}">—</div></div>
         </div>
+        <div style="font-size:10px;color:#999;text-align:center;margin-top:2px;">※午前・午後ともハーフハンデを引いて算出</div>
         <div class="vs-row">
           <div class="vs-cell"><div class="label">午前vs有本</div><div class="vs-mark" id="v-am-${i}">—</div></div>
           <div class="vs-cell"><div class="label">午後vs有本</div><div class="vs-mark" id="v-pm-${i}">—</div></div>
@@ -332,7 +333,7 @@ function recalc() {
   const aHalf = aHandi / 2;
   const aAm = c.arimotoAm === '' ? null : +c.arimotoAm;
   const aPm = c.arimotoPm === '' ? null : +c.arimotoPm;
-  const aAmRes = aAm == null ? null : aAm - aHandi;
+  const aAmRes = aAm == null ? null : aAm - aHalf;
   const aPmRes = aPm == null ? null : aPm - aHalf;
 
   document.getElementById('arimoto-am-res').textContent = aAmRes == null ? '—' : aAmRes.toFixed(1);
@@ -346,7 +347,7 @@ function recalc() {
     const half = handi / 2;
     const am = sc.am === '' ? null : +sc.am;
     const pm = sc.pm === '' ? null : +sc.pm;
-    const amRes = am == null ? null : am - handi;
+    const amRes = am == null ? null : am - half;
     const pmRes = pm == null ? null : pm - half;
 
     setText('r-half-' + i, half.toFixed(1));
@@ -498,7 +499,7 @@ function saveGame() {
     const aHandi = +c.arimotoHandi || 0;
     const aHalf = aHandi / 2;
     if (c.arimotoAm === '' || c.arimotoPm === '' || sc.am === '' || sc.pm === '') return;
-    const amVs = compare(+c.arimotoAm - aHandi, +sc.am - handi);
+    const amVs = compare(+c.arimotoAm - aHalf, +sc.am - half);
     const pmVs = compare(+c.arimotoPm - aHalf, +sc.pm - half);
     net += calcMoney(amVs, pmVs);
   });
