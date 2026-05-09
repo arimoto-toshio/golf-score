@@ -163,6 +163,9 @@
       <input type="number" id="newMemHandi" placeholder="ハンデ" class="handi-input2" style="width:80px;padding:10px;border:1.5px solid #ddd;border-radius:6px;font-size:14px;text-align:center;" inputmode="numeric">
       <button class="btn btn-add" style="flex:1;" onclick="addMember()">追加</button>
     </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid #eee;">
+      <button class="btn" style="background:#c62828;color:white;width:100%;" onclick="resetMembers()">🔄 初期メンバー11名を復元</button>
+    </div>
   </div>
 </div>
 
@@ -182,7 +185,22 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY = 'golf_score_app_v1';
+const STORAGE_KEY = 'golf_score_app_v2';
+// v1の古いデータを引き継いで、メンバーが空ならリセットする
+(function migrate() {
+  try {
+    const old = localStorage.getItem('golf_score_app_v1');
+    if (old && !localStorage.getItem('golf_score_app_v2')) {
+      const d = JSON.parse(old);
+      if (d && d.members && d.members.length > 0) {
+        // メンバーがあれば引き継ぐ
+        localStorage.setItem('golf_score_app_v2', old);
+      }
+      // メンバーが空ならv1を捨ててv2は新規作成（=defaultMembers）
+      localStorage.removeItem('golf_score_app_v1');
+    }
+  } catch (e) {}
+})();
 
 // ========== DATA ==========
 let app = loadApp();
@@ -476,6 +494,15 @@ function addMember() {
   save();
   renderMembers();
   toast(name + ' を追加');
+}
+
+function resetMembers() {
+  if (!confirm('初期メンバー11名で上書きします。よろしいですか？')) return;
+  app.members = defaultMembers();
+  save();
+  renderMembers();
+  render();
+  toast('11名を復元しました');
 }
 
 function removeMember(i) {
