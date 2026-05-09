@@ -338,9 +338,18 @@ function renderHistory() {
     return;
   }
   wrap.innerHTML = app.history.map(h => {
-    return `<div class="history-item" onclick="loadHistory(${h.id})">
-      <div style="font-weight:700;">${esc(h.date)} ${h.memo ? '・' + esc(h.memo) : ''}</div>
-      <div class="history-meta">有本収支: ¥${(h.totalNet||0).toLocaleString()}</div>
+    const net = h.totalNet || 0;
+    const sign = net >= 0 ? '+' : '-';
+    const color = net > 0 ? '#1a7a3a' : net < 0 ? '#c62828' : '#888';
+    return `<div class="history-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:700;">${esc(h.date)}</div>
+          ${h.memo ? `<div class="history-meta">${esc(h.memo)}</div>` : ''}
+        </div>
+        <div style="font-size:18px;font-weight:700;color:${color};">${sign}¥${Math.abs(net).toLocaleString()}</div>
+        <button class="btn btn-del" style="margin-left:8px;" onclick="deleteHistory(${h.id})">削除</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -541,11 +550,6 @@ function saveGame() {
     id: Date.now(),
     date: c.date,
     memo: c.memo,
-    arimotoHandi: c.arimotoHandi,
-    arimotoAm: c.arimotoAm,
-    arimotoPm: c.arimotoPm,
-    scores: JSON.parse(JSON.stringify(c.scores)),
-    members: JSON.parse(JSON.stringify(app.members)),
     totalNet: net,
     savedAt: new Date().toISOString()
   };
@@ -554,22 +558,14 @@ function saveGame() {
   toast('💾 保存しました');
 }
 
-function loadHistory(id) {
+function deleteHistory(id) {
   const h = app.history.find(x => x.id === id);
   if (!h) return;
-  if (!confirm(h.date + ' のデータを読み込みますか？（現在の入力は失われます）')) return;
-  app.current = {
-    date: h.date,
-    memo: h.memo || '',
-    arimotoHandi: h.arimotoHandi || 36,
-    arimotoAm: h.arimotoAm || '',
-    arimotoPm: h.arimotoPm || '',
-    scores: JSON.parse(JSON.stringify(h.scores || {}))
-  };
-  if (h.members) app.members = JSON.parse(JSON.stringify(h.members));
+  if (!confirm(h.date + ' の履歴を削除しますか？')) return;
+  app.history = app.history.filter(x => x.id !== id);
   save();
-  showPage('game');
-  render();
+  renderHistory();
+  toast('履歴を削除しました');
 }
 
 function newGame() {
