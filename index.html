@@ -192,7 +192,7 @@ function loadApp() {
     const s = localStorage.getItem(STORAGE_KEY);
     if (s) {
       const d = JSON.parse(s);
-      if (!d.members) d.members = defaultMembers();
+      if (!d.members || d.members.length === 0) d.members = defaultMembers();
       if (!d.current) d.current = newGameData();
       if (!d.history) d.history = [];
       return d;
