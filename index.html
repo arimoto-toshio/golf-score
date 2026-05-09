@@ -212,6 +212,12 @@ function loadApp() {
       const d = JSON.parse(s);
       if (!d.members || d.members.length === 0) d.members = defaultMembers();
       if (!d.current) d.current = newGameData();
+      if (!d.current.scores || typeof d.current.scores !== 'object') d.current.scores = {};
+      if (d.current.arimotoHandi == null) d.current.arimotoHandi = 36;
+      if (d.current.arimotoAm == null) d.current.arimotoAm = '';
+      if (d.current.arimotoPm == null) d.current.arimotoPm = '';
+      if (!d.current.date) d.current.date = new Date().toISOString().slice(0, 10);
+      if (d.current.memo == null) d.current.memo = '';
       if (!d.history) d.history = [];
       return d;
     }
@@ -269,7 +275,6 @@ function render() {
   document.getElementById('gameMemo').value = c.memo || '';
   document.getElementById('arimoto-am').value = c.arimotoAm;
   document.getElementById('arimoto-pm').value = c.arimotoPm;
-  document.getElementById('arimoto-handi').textContent = c.arimotoHandi;
   document.getElementById('arimoto-handi-input').value = c.arimotoHandi;
   document.getElementById('arimoto-half').textContent = ((+c.arimotoHandi || 0) / 2).toFixed(1);
 
