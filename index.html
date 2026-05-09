@@ -257,6 +257,7 @@ function showPage(name) {
   ['game', 'members', 'history'].forEach(p => {
     document.getElementById('page-' + p).classList.toggle('hidden', p !== name);
   });
+  if (name === 'game') render();
   if (name === 'members') renderMembers();
   if (name === 'history') renderHistory();
 }
