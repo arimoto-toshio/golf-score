@@ -90,6 +90,16 @@
   .history-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
   .history-item:active { background: #f0f4f0; }
   .history-meta { font-size: 12px; color: #888; }
+
+  .extras-card { margin-top: 14px; }
+  .extras-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
+  .extras-row label { width: 70px; font-weight: 700; color: #2a4a2a; font-size: 15px; }
+  .extras-input-wrap { flex: 1; display: flex; align-items: center; border: 1.5px solid #ddd; border-radius: 6px; padding: 0 8px; background: #fafafa; }
+  .extras-input-wrap .yen-mark { color: #888; font-weight: 700; margin-right: 4px; }
+  .extras-input-wrap input { flex: 1; border: none; background: transparent; padding: 10px 0; font-size: 16px; text-align: right; outline: none; }
+  .extras-total { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding: 12px; background: #f5e6c8; border-radius: 8px; font-weight: 700; }
+  .extras-total span:first-child { color: #6b1f1f; font-size: 15px; }
+  .extras-total span:last-child { color: #2a0a0a; font-size: 22px; }
 </style>
 </head>
 <body>
@@ -151,6 +161,27 @@
 
   <!-- メンバー一覧 -->
   <div id="memCards"></div>
+
+  <!-- 追加収支（賞金・馬・にぎり） -->
+  <div class="card extras-card">
+    <div class="card-h">💴 追加収支（手入力）</div>
+    <div class="extras-row">
+      <label>賞金</label>
+      <div class="extras-input-wrap"><span class="yen-mark">¥</span><input type="number" id="extra-prize" oninput="recalcExtras()" inputmode="numeric" placeholder="0"></div>
+    </div>
+    <div class="extras-row">
+      <label>馬</label>
+      <div class="extras-input-wrap"><span class="yen-mark">¥</span><input type="number" id="extra-uma" oninput="recalcExtras()" inputmode="numeric" placeholder="0"></div>
+    </div>
+    <div class="extras-row">
+      <label>にぎり</label>
+      <div class="extras-input-wrap"><span class="yen-mark">¥</span><input type="number" id="extra-nigiri" oninput="recalcExtras()" inputmode="numeric" placeholder="0"></div>
+    </div>
+    <div class="extras-total">
+      <span>合計</span>
+      <span id="extrasTotal">¥0</span>
+    </div>
+  </div>
 </div>
 
 <!-- メンバーページ -->
@@ -218,6 +249,9 @@ function loadApp() {
       if (d.current.arimotoPm == null) d.current.arimotoPm = '';
       if (!d.current.date) d.current.date = new Date().toISOString().slice(0, 10);
       if (d.current.memo == null) d.current.memo = '';
+      if (d.current.extraPrize == null) d.current.extraPrize = '';
+      if (d.current.extraUma == null) d.current.extraUma = '';
+      if (d.current.extraNigiri == null) d.current.extraNigiri = '';
       if (!d.history) d.history = [];
       return d;
     }
@@ -249,7 +283,10 @@ function newGameData() {
     arimotoHandi: 36, // 写真の値
     arimotoAm: '',
     arimotoPm: '',
-    scores: {} // { 名前: {am: '', pm: ''} }
+    scores: {}, // { 名前: {am: '', pm: ''} }
+    extraPrize: '',
+    extraUma: '',
+    extraNigiri: ''
   };
 }
 
@@ -276,6 +313,9 @@ function render() {
   document.getElementById('arimoto-am').value = c.arimotoAm;
   document.getElementById('arimoto-pm').value = c.arimotoPm;
   document.getElementById('arimoto-handi-input').value = c.arimotoHandi;
+  document.getElementById('extra-prize').value = c.extraPrize || '';
+  document.getElementById('extra-uma').value = c.extraUma || '';
+  document.getElementById('extra-nigiri').value = c.extraNigiri || '';
   document.getElementById('arimoto-half').textContent = ((+c.arimotoHandi || 0) / 2).toFixed(1);
 
   // メンバーカード
@@ -419,6 +459,8 @@ function recalc() {
     else if (money <= -1000) card.classList.add('lose-double');
   });
 
+  recalcExtras();
+
   document.getElementById('totalWin').textContent = '¥' + totalWin.toLocaleString();
   document.getElementById('totalLose').textContent = '¥' + totalLose.toLocaleString();
   const net = totalWin - totalLose;
@@ -471,6 +513,16 @@ function calcMoney(am, pm) {
 function setText(id, val) {
   const el = document.getElementById(id);
   if (el) el.textContent = val;
+}
+
+function recalcExtras() {
+  const c = app.current;
+  c.extraPrize = document.getElementById('extra-prize').value;
+  c.extraUma = document.getElementById('extra-uma').value;
+  c.extraNigiri = document.getElementById('extra-nigiri').value;
+  const total = (+c.extraPrize || 0) + (+c.extraUma || 0) + (+c.extraNigiri || 0);
+  document.getElementById('extrasTotal').textContent = '¥' + total.toLocaleString();
+  save();
 }
 
 function esc(s) {
@@ -545,6 +597,7 @@ function saveGame() {
     const pmVs = compare(+c.arimotoPm - aHalf, +sc.pm - half);
     net += calcMoney(amVs, pmVs);
   });
+  net += (+c.extraPrize || 0) + (+c.extraUma || 0) + (+c.extraNigiri || 0);
 
   const snap = {
     id: Date.now(),
