@@ -87,6 +87,8 @@
 
   .hidden { display: none !important; }
 
+  .month-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #2a4a2a; color: white; font-weight: 700; font-size: 15px; margin: 12px 0 0; border-radius: 6px 6px 0 0; }
+  .month-header span:last-child { font-size: 16px; }
   .history-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
   .history-item:active { background: #f0f4f0; }
   .history-meta { font-size: 12px; color: #888; }
@@ -377,21 +379,43 @@ function renderHistory() {
     wrap.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px;">まだ保存されていません</div>';
     return;
   }
-  wrap.innerHTML = app.history.map(h => {
-    const net = h.totalNet || 0;
-    const sign = net >= 0 ? '+' : '-';
-    const color = net > 0 ? '#1a7a3a' : net < 0 ? '#c62828' : '#888';
-    return `<div class="history-item">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div style="font-weight:700;">${esc(h.date)}</div>
-          ${h.memo ? `<div class="history-meta">${esc(h.memo)}</div>` : ''}
-        </div>
-        <div style="font-size:18px;font-weight:700;color:${color};">${sign}¥${Math.abs(net).toLocaleString()}</div>
-        <button class="btn btn-del" style="margin-left:8px;" onclick="deleteHistory(${h.id})">削除</button>
-      </div>
+  // 月毎にグループ化（新しい月が手前）
+  const sorted = app.history.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const groups = {};
+  const order = [];
+  sorted.forEach(h => {
+    const key = (h.date || '').slice(0, 7) || '日付なし';
+    if (!groups[key]) { groups[key] = []; order.push(key); }
+    groups[key].push(h);
+  });
+  let html = '';
+  order.forEach(key => {
+    const items = groups[key];
+    const monthNet = items.reduce((s, x) => s + (x.totalNet || 0), 0);
+    const sign = monthNet >= 0 ? '+' : '-';
+    const color = monthNet > 0 ? '#1a7a3a' : monthNet < 0 ? '#c62828' : '#888';
+    const label = key === '日付なし' ? '日付なし' : key.replace('-', '年') + '月';
+    html += `<div class="month-header">
+      <span>${label}</span>
+      <span style="color:${color};">${sign}¥${Math.abs(monthNet).toLocaleString()}</span>
     </div>`;
-  }).join('');
+    items.forEach(h => {
+      const net = h.totalNet || 0;
+      const s = net >= 0 ? '+' : '-';
+      const c = net > 0 ? '#1a7a3a' : net < 0 ? '#c62828' : '#888';
+      html += `<div class="history-item">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:700;">${esc(h.date)}</div>
+            ${h.memo ? `<div class="history-meta">${esc(h.memo)}</div>` : ''}
+          </div>
+          <div style="font-size:18px;font-weight:700;color:${c};">${s}¥${Math.abs(net).toLocaleString()}</div>
+          <button class="btn btn-del" style="margin-left:8px;" onclick="deleteHistory(${h.id})">削除</button>
+        </div>
+      </div>`;
+    });
+  });
+  wrap.innerHTML = html;
 }
 
 // ========== CALC ==========
